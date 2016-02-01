@@ -5,7 +5,7 @@ ENV DATA_DIR="/data"
 
 ADD docker-entrypoint.sh /entrypoint.sh
 
-RUN useradd -m -d /home/taiga -s /bin/bash taiga
+RUN useradd -m -d /home/taiga -s /bin/bash taiga && \
     mkdir -p "DATA_DIR" /home/taiga/conf/ /home/taiga/logs && \
     apt-get -q update && \
     apt-get install -y build-essential binutils-doc autoconf flex bison libjpeg-dev \
