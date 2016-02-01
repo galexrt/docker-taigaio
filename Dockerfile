@@ -15,7 +15,7 @@ RUN useradd -m -d /home/taiga -s /bin/bash taiga && \
         libfreetype6-dev zlib1g-dev libzmq3-dev libgdbm-dev libncurses5-dev automake \
         libtool libffi-dev curl git tmux gettext python3 python3-pip python-dev \
         python3-dev python-pip virtualenvwrapper libxml2-dev libxslt-dev nginx nodejs \
-        npm supervisor postgresql postgresql-contrib postgresql-server-dev-all && \
+        supervisor postgresql postgresql-contrib postgresql-server-dev-all && \
     npm install -g coffee-script && \
     pip2 install circus && \
     mv -f /includes/supervisor/* /etc/supervisor/conf.d && \
