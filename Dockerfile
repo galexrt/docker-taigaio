@@ -15,6 +15,7 @@ RUN useradd -m -d /home/taiga -s /bin/bash taiga && \
         python3-dev python-pip virtualenvwrapper libxml2-dev libxslt-dev nginx \
         nodejs nodejs-legacy npm supervisor postgresql postgresql-contrib postgresql-server-dev-all && \
     npm install -g coffee-script && \
+    pip2 install circus && \
     mv /includes/supervisor/* /etc/supervisor/conf.d && \
     rm -f /etc/nginx/sites-enabled/default && \
     mv /includes/taiga-http /etc/nginx/sites-enabled/taiga && \
@@ -35,9 +36,7 @@ RUN mkdir -p /home/taiga/conf/ /home/taiga/logs && \
     cd /home/taiga && \
     git clone https://github.com/taigaio/taiga-events.git taiga-events && \
     cd /home/taiga/taiga-events && \
-    npm install && \
-    cd /home/taiga && \
-    pip2 install circus
+    npm install
 
 USER root
 ENTRYPOINT ["/entrypoint.sh"]
