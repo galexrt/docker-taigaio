@@ -112,13 +112,13 @@ CREATE DATABASE $DB_NAME OWNER=$DB_USER;
 CREATE SCHEMA $DB_SCHEMA AUTHORIZATION $DB_USER;
 """ | psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" || :
 
-python manage.py migrate --noinput
+su taiga -c "python manage.py migrate --noinput"
 if [ ! -f "$DATA_DIR/initiated" ]; then
-    python manage.py loaddata initial_user
-    python manage.py loaddata initial_project_templates
-    python manage.py loaddata initial_role
+    su taiga -c "python manage.py loaddata initial_user"
+    su taiga -c "python manage.py loaddata initial_project_templates"
+    su taiga -c "python manage.py loaddata initial_role"
 fi
-python manage.py compilemessages
-python manage.py collectstatic --noinput
+su taiga -c "python manage.py compilemessages"
+su taiga -c "python manage.py collectstatic --noinput"
 
 supervisord -n
