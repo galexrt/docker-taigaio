@@ -116,7 +116,7 @@ databaseSetup() {
 }
 runMigration() {
     su taiga -c "python /home/taiga/taiga-back/manage.py migrate --noinput"
-    if [ ! -f "$DATA_DIR/initiated" ]; then
+    if [ ! -z "$RUN_INIT" ] && ([ "$RUN_INIT" == "True" ] || [ "$RUN_INIT" == "true" ]); then
         su taiga -c "python /home/taiga/taiga-back/manage.py loaddata initial_user"
         su taiga -c "python /home/taiga/taiga-back/manage.py loaddata initial_project_templates"
         su taiga -c "python /home/taiga/taiga-back/manage.py loaddata initial_role"

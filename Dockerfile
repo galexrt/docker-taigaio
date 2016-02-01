@@ -35,7 +35,9 @@ RUN mkdir -p /home/taiga/conf/ /home/taiga/logs && \
     cd /home/taiga && \
     git clone https://github.com/taigaio/taiga-events.git taiga-events && \
     cd /home/taiga/taiga-events && \
-    npm install
+    npm install && \
+    cd /home/taiga && \
+    pip2 install circus
 
 USER root
 ENTRYPOINT ["/entrypoint.sh"]

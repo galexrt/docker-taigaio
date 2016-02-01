@@ -42,3 +42,4 @@ taigaio:
     ADMIN_USERS: "(\"Admin 1\",\"admin1@example.com\");(\"Admin 2\",\"admin2@example.com\")"
     SETTING_GITHUB_API_CLIENT_ID: ""
     SETTING_GITHUB_API_CLIENT_SECRET: ""
+    RUN_INIT: "True"
