@@ -1,39 +1,20 @@
-from .common import *
+# Copyright (C) 2014 Andrey Antukh <niwi@niwi.be>
+# Copyright (C) 2014 Jesús Espino <jespinog@gmail.com>
+# Copyright (C) 2014 David Barragán <bameda@dbarragan.com>
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-MEDIA_URL = "http://example.com/media/"
-STATIC_URL = "http://example.com/static/"
-ADMIN_MEDIA_PREFIX = "http://example.com/static/admin/"
-SITES["front"]["scheme"] = "http"
-SITES["front"]["domain"] = "example.com"
-
-SECRET_KEY = "theveryultratopsecretkey"
-
-DEBUG = False
-TEMPLATE_DEBUG = False
-PUBLIC_REGISTER_ENABLED = True
-
-DEFAULT_FROM_EMAIL = "no-reply@example.com"
-SERVER_EMAIL = DEFAULT_FROM_EMAIL
-
-# Uncomment and populate with proper connection parameters
-# for enable email sending. EMAIL_HOST_USER should end by @domain.tld
-#EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-#EMAIL_USE_TLS = False
-#EMAIL_HOST = "localhost"
-#EMAIL_HOST_USER = ""
-#EMAIL_HOST_PASSWORD = ""
-#EMAIL_PORT = 25
-
-# Uncomment and populate with proper connection parameters
-# for enable github login/singin.
-#GITHUB_API_CLIENT_ID = "yourgithubclientid"
-#GITHUB_API_CLIENT_SECRET = "yourgithubclientsecret"
-
+from .development import *
 from .celery import *
-
-BROKER_URL = 'amqp://guest:guest@localhost:5672//'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ENABLED = True
-
 EVENTS_PUSH_BACKEND = "taiga.events.backends.rabbitmq.EventsPushBackend"
-EVENTS_PUSH_BACKEND_OPTIONS = {"url": "amqp://taiga:PASSWORD@localhost:5672/taiga"}

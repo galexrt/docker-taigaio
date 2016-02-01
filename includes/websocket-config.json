@@ -1,7 +1,0 @@
-{
-    "url": "amqp://taiga:PASSWORD@localhost:5672/taiga",
-    "secret": "mysecret",
-    "webSocketServer": {
-        "port": 8888
-    }
-}

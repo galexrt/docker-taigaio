@@ -1,0 +1,44 @@
+database:
+  image: "sameersbn/postgresql:9.4-12"
+  environment:
+    DB_NAME: taigaio
+    DB_USER: taigaio
+    DB_PASS: taigaio
+  volumes:
+    - "/opt/docker/taigaio/postgresql/data:/var/lib/postgresql:rw"
+memcached:
+  image: "sameersbn/memcached:latest"
+  restart: always
+rabbitmq:
+  image: "rabbitmq:3.5.5"
+  hostname: taigaio-rabbit
+  restart: always
+  environment:
+      RABBITMQ_DEFAULT_USER: "taigaio"
+      RABBITMQ_DEFAULT_PASS: "taigaio"
+redis:
+  image: "quay.io/sameersbn/redis:latest"
+  volumes:
+    - "/opt/docker/taigaio/redis:/var/lib/redis:rw"
+taigaio:
+  image: "quay.io/galexrt/taigaio:latest"
+  ports:
+    - "80:80"
+    - "443:443"
+  links:
+    - database
+    - memcached
+    - rabbitmq
+    - redis
+  environment:
+    DB_HOST: "database"
+    DB_NAME: "taigaio"
+    DB_USER: "taigaio"
+    DB_PASS: "taigaio"
+    RABBITMQ_HOST: "rabbitmq"
+    RABBITMQ_USER: "taigaio"
+    RABBITMQ_PASS: "taigaio"
+    REDIS_HOST: "redis"
+    ADMIN_USERS: "(\"Admin 1\",\"admin1@example.com\");(\"Admin 2\",\"admin2@example.com\")"
+    SETTING_GITHUB_API_CLIENT_ID: ""
+    SETTING_GITHUB_API_CLIENT_SECRET: ""
