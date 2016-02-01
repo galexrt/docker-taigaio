@@ -9,11 +9,13 @@ ADD includes/ /includes/
 RUN useradd -m -d /home/taiga -s /bin/bash taiga && \
     mkdir -p "DATA_DIR" && \
     apt-get -q update && \
+    apt-get install -y curl && \
+    curl -sL https://deb.nodesource.com/setup_5.x | bash - && \
     apt-get install -y build-essential binutils-doc autoconf flex bison libjpeg-dev \
         libfreetype6-dev zlib1g-dev libzmq3-dev libgdbm-dev libncurses5-dev automake \
         libtool libffi-dev curl git tmux gettext python3 python3-pip python-dev \
-        python3-dev python-pip virtualenvwrapper libxml2-dev libxslt-dev nginx \
-        nodejs nodejs-legacy npm supervisor postgresql postgresql-contrib postgresql-server-dev-all && \
+        python3-dev python-pip virtualenvwrapper libxml2-dev libxslt-dev nginx nodejs \
+        npm supervisor postgresql postgresql-contrib postgresql-server-dev-all && \
     npm install -g coffee-script && \
     pip2 install circus && \
     mv -f /includes/supervisor/* /etc/supervisor/conf.d && \
