@@ -21,7 +21,7 @@ RUN useradd -m -d /home/taiga -s /bin/bash taiga && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 USER taiga
-RUN /home/taiga/conf/ /home/taiga/logs && \
+RUN mkdir -p /home/taiga/conf/ /home/taiga/logs && \
     git clone https://github.com/taigaio/taiga-back.git /home/taiga/taiga-back && \
     cd /home/taiga/taiga-back && \
     git checkout stable  && \
