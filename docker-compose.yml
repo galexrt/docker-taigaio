@@ -1,27 +1,27 @@
 database:
   image: "sameersbn/postgresql:9.4-12"
   environment:
-    DB_NAME: taigaio
-    DB_USER: taigaio
-    DB_PASS: taigaio
+    DB_NAME: taiga
+    DB_USER: taiga
+    DB_PASS: taiga
   volumes:
-    - "/opt/docker/taigaio/postgresql/data:/var/lib/postgresql:rw"
+    - "/opt/docker/taiga/postgresql/data:/var/lib/postgresql:rw"
 memcached:
   image: "sameersbn/memcached:latest"
   restart: always
 rabbitmq:
   image: "rabbitmq:3.5.5"
-  hostname: taigaio-rabbit
+  hostname: taiga-rabbit
   restart: always
   environment:
-      RABBITMQ_DEFAULT_USER: "taigaio"
-      RABBITMQ_DEFAULT_PASS: "taigaio"
+      RABBITMQ_DEFAULT_USER: "taiga"
+      RABBITMQ_DEFAULT_PASS: "taiga"
 redis:
   image: "quay.io/sameersbn/redis:latest"
   volumes:
-    - "/opt/docker/taigaio/redis:/var/lib/redis:rw"
-taigaio:
-  image: "quay.io/galexrt/taigaio:latest"
+    - "/opt/docker/taiga/redis:/var/lib/redis:rw"
+taiga:
+  image: "quay.io/galexrt/taiga:latest"
   ports:
     - "80:80"
     - "443:443"
@@ -32,12 +32,12 @@ taigaio:
     - redis
   environment:
     DB_HOST: "database"
-    DB_NAME: "taigaio"
-    DB_USER: "taigaio"
-    DB_PASS: "taigaio"
+    DB_NAME: "taiga"
+    DB_USER: "taiga"
+    DB_PASS: "taiga"
     RABBITMQ_HOST: "rabbitmq"
-    RABBITMQ_USER: "taigaio"
-    RABBITMQ_PASS: "taigaio"
+    RABBITMQ_USER: "taiga"
+    RABBITMQ_PASS: "taiga"
     REDIS_HOST: "redis"
     ADMIN_USERS: "(\"Admin 1\",\"admin1@example.com\");(\"Admin 2\",\"admin2@example.com\")"
     SETTING_GITHUB_API_CLIENT_ID: ""
