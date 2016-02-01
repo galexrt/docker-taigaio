@@ -24,7 +24,6 @@ taiga:
     - "443:443"
   links:
     - database
-    - memcached
     - rabbitmq
     - redis
   environment:
