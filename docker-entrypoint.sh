@@ -17,6 +17,7 @@ RABBITMQ_PASS="${RABBITMQ_PASS:-taiga}"
 REDIS_HOST="${REDIS_HOST:-redis}"
 REDIS_PORT="${REDIS_PORT:-6379}"
 
+taigaConfiguration() {
 cat <<EOF >> /home/taiga/taiga-front-dist/dist/conf.json
 {
     "api": "http://example.com/api/v1/",
@@ -47,7 +48,6 @@ echo "CELERY_RESULT_BACKEND = 'redis://$REDIS_HOST:$REDIS_PORT/0'" >> "$LOCAL_PY
 echo "BROKER_URL = 'amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT//'" >> "$LOCAL_PY"
 echo "EVENTS_PUSH_BACKEND_OPTIONS = {\"url\": \"amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT/taiga\"}" >> "$LOCAL_PY"
 unset SETTING_EVENTS_PUSH_BACKEND_OPTIONS SETTINGS_BROKER_URL SETTING_CELERY_RESULT_BACKEND
-
 cat <<EOF >> /home/taiga/taiga-events/config.json
 {
     \"url\": \"amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT/taiga\",
@@ -83,42 +83,50 @@ for SETTING_KEY in "${SET_SETTINGS[@]}"; do
     setConfigurationValue "$SETTING_KEY" "$SETTING_VAR" "$FILE"
 done
 unset SETTING_KEY SETTING_VAR KEY
-
-echo "SITES[\"front\"][\"scheme\"] = \"https\"" >> "$LOCAL_PY"
-if [ "$HTTPS_ENABLED" != "False" ] && [ "$HTTPS_ENABLED" != "false" ]; then
-    mv /includes/taiga-https /etc/nginx/sites-enabled/taiga
-    sed -i 's|http://|https://|g' /home/taiga/taiga-front-dist/dist/conf.json
-    sed -i 's|http://|https://|g' "$LOCAL_PY"
+}
+configureHttps() {
     echo "SITES[\"front\"][\"scheme\"] = \"https\"" >> "$LOCAL_PY"
-fi
-
-export PGPASSWORD="$DB_PASS"
-local TIMEOUT=45
-echo "Waiting for database server to allow connections ..."
-while ! /usr/bin/pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -t 1 >/dev/null 2>&1
-do
-    TIMEOUT=$(expr $TIMEOUT - 1)
-    if [[ $TIMEOUT -eq 0 ]]; then
-        echo "Could not connect to database server. Exiting."
-        exit 1
+    if [ "$HTTPS_ENABLED" != "False" ] && [ "$HTTPS_ENABLED" != "false" ]; then
+        mv /includes/taiga-https /etc/nginx/sites-enabled/taiga
+        sed -i 's|http://|https://|g' /home/taiga/taiga-front-dist/dist/conf.json
+        sed -i 's|http://|https://|g' "$LOCAL_PY"
+        echo "SITES[\"front\"][\"scheme\"] = \"https\"" >> "$LOCAL_PY"
     fi
-    echo -n "."
-    sleep 1
-done
-echo """
-CREATE USER $DB_USER;
-ALTER ROLE $DB_USER SET search_path TO $DB_NAME,public;
-CREATE DATABASE $DB_NAME OWNER=$DB_USER;
-CREATE SCHEMA $DB_SCHEMA AUTHORIZATION $DB_USER;
-""" | psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" || :
-
-su taiga -c "python manage.py migrate --noinput"
-if [ ! -f "$DATA_DIR/initiated" ]; then
-    su taiga -c "python manage.py loaddata initial_user"
-    su taiga -c "python manage.py loaddata initial_project_templates"
-    su taiga -c "python manage.py loaddata initial_role"
-fi
-su taiga -c "python manage.py compilemessages"
-su taiga -c "python manage.py collectstatic --noinput"
+}
+databaseSetup() {
+    export PGPASSWORD="$DB_PASS"
+    local TIMEOUT=45
+    echo "Waiting for database server to allow connections ..."
+    while ! /usr/bin/pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -t 1 >/dev/null 2>&1
+    do
+        TIMEOUT=$(expr $TIMEOUT - 1)
+        if [[ $TIMEOUT -eq 0 ]]; then
+            echo "Could not connect to database server. Exiting."
+            exit 1
+        fi
+        echo -n "."
+        sleep 1
+    done
+    echo """
+    CREATE USER $DB_USER;
+    ALTER ROLE $DB_USER SET search_path TO $DB_NAME,public;
+    CREATE DATABASE $DB_NAME OWNER=$DB_USER;
+    CREATE SCHEMA $DB_SCHEMA AUTHORIZATION $DB_USER;
+    """ | psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" || :
+}
+runMigration() {
+    su taiga -c "python manage.py migrate --noinput"
+    if [ ! -f "$DATA_DIR/initiated" ]; then
+        su taiga -c "python manage.py loaddata initial_user"
+        su taiga -c "python manage.py loaddata initial_project_templates"
+        su taiga -c "python manage.py loaddata initial_role"
+    fi
+    su taiga -c "python manage.py compilemessages"
+    su taiga -c "python manage.py collectstatic --noinput"
+}
+configureHttps
+taigaConfiguration
+databaseSetup
+runMigration
 
 supervisord -n
