@@ -115,14 +115,14 @@ databaseSetup() {
     """ | psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" || :
 }
 runMigration() {
-    su taiga -c "python manage.py migrate --noinput"
+    su taiga -c "python /home/taiga/taiga-back/manage.py migrate --noinput"
     if [ ! -f "$DATA_DIR/initiated" ]; then
-        su taiga -c "python manage.py loaddata initial_user"
-        su taiga -c "python manage.py loaddata initial_project_templates"
-        su taiga -c "python manage.py loaddata initial_role"
+        su taiga -c "python /home/taiga/taiga-back/manage.py loaddata initial_user"
+        su taiga -c "python /home/taiga/taiga-back/manage.py loaddata initial_project_templates"
+        su taiga -c "python /home/taiga/taiga-back/manage.py loaddata initial_role"
     fi
-    su taiga -c "python manage.py compilemessages"
-    su taiga -c "python manage.py collectstatic --noinput"
+    su taiga -c "python /home/taiga/taiga-back/manage.py compilemessages"
+    su taiga -c "python /home/taiga/taiga-back/manage.py collectstatic --noinput"
 }
 configureHttps
 taigaConfiguration
