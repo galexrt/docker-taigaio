@@ -16,8 +16,7 @@ RUN useradd -m -d /home/taiga -s /bin/bash taiga && \
         nodejs nodejs-legacy npm supervisor postgresql postgresql-contrib postgresql-server-dev-all && \
     npm install -g coffee-script && \
     pip2 install circus && \
-    mv /includes/circus.ini /home/taiga/conf/circus.ini && \
-    mv /includes/supervisor/* /etc/supervisor/conf.d && \
+    mv -f /includes/supervisor/* /etc/supervisor/conf.d && \
     rm -f /etc/nginx/sites-enabled/default && \
     mv /includes/taiga-http /etc/nginx/sites-enabled/taiga && \
     apt-get -qq autoremove --purge -y && \
@@ -26,6 +25,7 @@ RUN useradd -m -d /home/taiga -s /bin/bash taiga && \
 
 USER taiga
 RUN mkdir -p /home/taiga/conf/ /home/taiga/logs && \
+    cp -f /includes/circus.ini /home/taiga/conf/circus.ini && \
     git clone https://github.com/taigaio/taiga-back.git /home/taiga/taiga-back && \
     cd /home/taiga/taiga-back && \
     git checkout stable  && \
