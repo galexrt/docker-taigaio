@@ -6,9 +6,6 @@ database:
     DB_PASS: taiga
   volumes:
     - "/opt/docker/taiga/postgresql/data:/var/lib/postgresql:rw"
-memcached:
-  image: "sameersbn/memcached:latest"
-  restart: always
 rabbitmq:
   image: "rabbitmq:3.5.5"
   hostname: taiga-rabbit
