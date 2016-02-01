@@ -15,7 +15,7 @@ RUN useradd -m -d /home/taiga -s /bin/bash taiga && \
         python3-dev python-pip virtualenvwrapper libxml2-dev libxslt-dev nginx \
         nodejs nodejs-legacy npm supervisor postgresql postgresql-contrib postgresql-server-dev-all && \
     npm install -g coffee-script && \
-    mv /includes/supervisord/* /etc/supervisord/conf.d
+    mv /includes/supervisor/* /etc/supervisor/conf.d
     rm -f /etc/nginx/sites-enabled/default && \
     mv /includes/taiga-http /etc/nginx/sites-enabled/taiga && \
     apt-get -qq autoremove --purge -y && \
