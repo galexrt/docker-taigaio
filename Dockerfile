@@ -12,7 +12,7 @@ RUN useradd -m -d /home/taiga -s /bin/bash taiga && \
         libfreetype6-dev zlib1g-dev libzmq3-dev libgdbm-dev libncurses5-dev automake \
         libtool libffi-dev curl git tmux gettext python3 python3-pip python-dev \
         python3-dev python-pip virtualenvwrapper libxml2-dev libxslt-dev nginx \
-        nodejs nodejs-legacy npm supervisord && \
+        nodejs nodejs-legacy npm supervisor && \
     npm install -g coffee-script && \
     rm /etc/nginx/sites-enabled/default && \
     apt-get -qq autoremove --purge -y && \
