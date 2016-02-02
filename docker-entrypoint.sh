@@ -1,7 +1,5 @@
 #!/bin/bash
 
-LOCAL_PY="/home/taiga/taiga-back/settings/local.py"
-
 EXTERNAL_HOST="${EXTERNAL_HOST:-localhost}"
 HTTPS_ENABLED="${HTTPS_ENABLED:-False}"
 SETTING_EMAIL_BACKEND="${SETTING_EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}"
@@ -18,6 +16,8 @@ RABBITMQ_USER="${RABBITMQ_USER:-taiga}"
 RABBITMQ_PASS="${RABBITMQ_PASS:-taiga}"
 REDIS_HOST="${REDIS_HOST:-redis}"
 REDIS_HOST_PORT="${REDIS_HOST_PORT:-6379}"
+
+LOCAL_PY="/opt/taiga/taiga-back/settings/local.py"
 
 setConfigurationValue() {
     if [ -z "$1" ]; then
@@ -62,17 +62,22 @@ setConfigurationValue() {
     echo "+ Setting key \"$KEY\", type \"$TYPE\" in file \"$FILE\"."
 }
 taigaConfiguration() {
-    cat <<EOF >> /home/taiga/taiga-front-dist/dist/conf.json
+    if [ "$HTTPS_ENABLED" == "True" ] || [ "$HTTPS_ENABLED" != "true" ]; then
+        local SCHEMA="https"
+    else
+        local SCHEMA="http"
+    fi
+    cat <<EOF >> /opt/taiga/taiga-front/dist/conf.json
 {
-    "api": "http://example.com/api/v1/",
-    "eventsUrl": "ws://example.com/events",
-    "debug": "true",
+    "api": "$SCHEMA://$EXTERNAL_HOST/api/v1/",
+    "eventsUrl": "wss://$EXTERNAL_HOST/events",
+    "debug": true,
     "publicRegisterEnabled": true,
     "feedbackEnabled": true,
     "privacyPolicyUrl": null,
     "termsOfServiceUrl": null,
     "maxUploadFileSize": null,
-    "contribPlugins": []
+    "gitHubClientId": null
 }
 EOF
     local VALUE="{
@@ -94,7 +99,7 @@ EOF
     setConfigurationValue "EVENTS_PUSH_BACKEND" "taiga.events.backends.rabbitmq.EventsPushBackend" "$LOCAL_PY"
     setConfigurationValue "EVENTS_PUSH_BACKEND_OPTIONS" "{\"url\": \"amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST\"}" "$LOCAL_PY" "array"
     unset SETTING_EVENTS_PUSH_BACKEND SETTING_EVENTS_PUSH_BACKEND_OPTIONS SETTINGS_BROKER_URL SETTING_CELERY_RESULT_BACKEND
-    cat <<EOF >> /home/taiga/taiga-events/config.json
+    cat <<EOF >> /opt/taiga/taiga-events/config.json
 {
     "url": "amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST",
     "secret": "mysecret",
@@ -128,9 +133,9 @@ EOF
     unset SETTING_KEY SETTING_VAR KEY
 }
 configureHttps() {
-    if [ "$HTTPS_ENABLED" != "False" ] && [ "$HTTPS_ENABLED" != "false" ]; then
+    if [ "$HTTPS_ENABLED" == "True" ] || [ "$HTTPS_ENABLED" != "true" ]; then
         mv /includes/taiga-https /etc/nginx/sites-enabled/taiga
-        sed -i 's|http://|https://|g' /home/taiga/taiga-front-dist/dist/conf.json
+        sed -i 's|http://|https://|g' /opt/taiga/taiga-front/dist/conf.json
         sed -i 's|http://|https://|g' "$LOCAL_PY"
     fi
 }
@@ -164,15 +169,16 @@ rabbitmqSetup() {
     rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" set_permissions -p /taiga "$RABBITMQ_USER" '.*' '.*' '.*' 2> /dev/null || :
 }
 runMigration() {
-    su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py migrate --noinput"
+    su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py migrate --noinput"
     if [ ! -z "$INSERT_DEFAULT_DATA" ] && ([ "$INSERT_DEFAULT_DATA" == "True" ] || [ "$INSERT_DEFAULT_DATA" == "true" ]); then
-        su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py loaddata initial_user"
-        su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py loaddata initial_project_templates"
-        su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py loaddata initial_role"
+        su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py loaddata initial_user"
+        su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py loaddata initial_project_templates"
+        su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py loaddata initial_role"
+        su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py compilemessages"
     fi
-    su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py compilemessages"
-    su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py collectstatic --noinput"
+    su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py collectstatic --noinput"
 }
+
 configureHttps
 taigaConfiguration
 databaseSetup

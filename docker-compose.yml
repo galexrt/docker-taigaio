@@ -22,6 +22,7 @@ taiga:
   ports:
     - "80:80"
     - "443:443"
+    - "8000:8000"
   links:
     - database
     - rabbitmq
