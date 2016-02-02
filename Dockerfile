@@ -22,8 +22,7 @@ RUN useradd -m -d /home/taiga -s /bin/bash taiga && \
     rm -f /etc/nginx/sites-enabled/default && \
     mv /includes/taiga-http /etc/nginx/sites-enabled/taiga && \
     apt-get -qq autoremove --purge -y && \
-    apt-get -qq clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    apt-get -qq clean
 
 USER taiga
 RUN mkdir -p /home/taiga/conf/ /home/taiga/logs && \
@@ -36,11 +35,11 @@ RUN mkdir -p /home/taiga/conf/ /home/taiga/logs && \
     git checkout stable && \
     git clone https://github.com/taigaio/taiga-events.git /home/taiga/taiga-events && \
     cd /home/taiga/taiga-events && \
-    npm install
+    npm install && \
+    bash -c "cd /home/taiga/taiga-back;source /usr/share/virtualenvwrapper/virtualenvwrapper.sh;mkvirtualenv -p /usr/bin/python3.4 taiga;pip install -r requirements.txt"
 
 USER root
-RUN cd /home/taiga/taiga-back && \
-    bash -c "cd /home/taiga/taiga-back;source /usr/share/virtualenvwrapper/virtualenvwrapper.sh;mkvirtualenv -p /usr/bin/python3.4 taiga;pip install -r requirements.txt" && \
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     chown -R taiga:taiga /home/taiga
 
 EXPOSE 80/tcp 443/tcp
