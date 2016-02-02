@@ -36,14 +36,13 @@ RUN mkdir -p /home/taiga/conf/ /home/taiga/logs && \
     git checkout stable && \
     git clone https://github.com/taigaio/taiga-events.git /home/taiga/taiga-events && \
     cd /home/taiga/taiga-events && \
-    npm install && \
-    cd /home/taiga/taiga-back && \
-    . /usr/share/virtualenvwrapper/virtualenvwrapper.sh && \
-    mkvirtualenv -p /usr/bin/python3.4 taiga && \
-    pip install -r requirements.txt && \
-    chown -R taiga:taiga /home/taiga
+    npm install
 
 USER root
-ENTRYPOINT ["/entrypoint.sh"]
+RUN cd /home/taiga/taiga-back && \
+    bash -c "cd /home/taiga/taiga-back;source /usr/share/virtualenvwrapper/virtualenvwrapper.sh;mkvirtualenv -p /usr/bin/python3.4 taiga;pip install -r requirements.txt" && \
+    chown -R taiga:taiga /home/taiga
 
 EXPOSE 80/tcp 443/tcp
+
+ENTRYPOINT ["/entrypoint.sh"]
