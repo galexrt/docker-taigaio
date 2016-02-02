@@ -31,7 +31,7 @@ RUN mkdir -p /home/taiga/conf/ /home/taiga/logs && \
     git clone https://github.com/taigaio/taiga-back.git /home/taiga/taiga-back && \
     cd /home/taiga/taiga-back && \
     git checkout stable  && \
-    bash -c "source /usr/share/virtualenvwrapper/virtualenvwrapper.sh;cd /home/taiga/taiga-back;mkvirtualenv -p /usr/bin/python3.4 taiga;pip install -r requirements.txt" && \
+    pip install -r requirements.txt && \
     cd /home/taiga && \
     git clone https://github.com/taigaio/taiga-front-dist.git taiga-front-dist && \
     cd /home/taiga/taiga-front-dist && \
