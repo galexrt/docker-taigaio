@@ -13,6 +13,7 @@ DB_USER="${DB_USER:-taigaio}"
 DB_PASS="${DB_PASS:-taigaio}"
 RABBITMQ_HOST="${RABBITMQ_HOST:-rabbitmq}"
 RABBITMQ_HOST_PORT="${RABBITMQ_HOST_PORT:-5672}"
+RABBITMQ_VHOST="${RABBITMQ_VHOST:-taiga}"
 RABBITMQ_USER="${RABBITMQ_USER:-taiga}"
 RABBITMQ_PASS="${RABBITMQ_PASS:-taiga}"
 REDIS_HOST="${REDIS_HOST:-redis}"
@@ -91,14 +92,14 @@ EOF
     setConfigurationValue "CELERY_RESULT_BACKEND" "redis://$REDIS_HOST:$REDIS_HOST_PORT/0" "$LOCAL_PY"
     setConfigurationValue "BROKER_URL" "amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_HOST_PORT//" "$LOCAL_PY"
     setConfigurationValue "EVENTS_PUSH_BACKEND" "taiga.events.backends.rabbitmq.EventsPushBackend" "$LOCAL_PY"
-    setConfigurationValue "EVENTS_PUSH_BACKEND_OPTIONS" "{\"url\": \"amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT/taiga\"}" "$LOCAL_PY" "array"
+    setConfigurationValue "EVENTS_PUSH_BACKEND_OPTIONS" "{\"url\": \"amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST\"}" "$LOCAL_PY" "array"
     unset SETTING_EVENTS_PUSH_BACKEND SETTING_EVENTS_PUSH_BACKEND_OPTIONS SETTINGS_BROKER_URL SETTING_CELERY_RESULT_BACKEND
     cat <<EOF >> /home/taiga/taiga-events/config.json
 {
-    \"url\": \"amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT/taiga\",
-    \"secret\": \"mysecret\",
-    \"webSocketServer\": {
-        \"port\": 8888
+    "url": "amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST",
+    "secret": "mysecret",
+    "webSocketServer": {
+        "port": 8888
     }
 }
 EOF
