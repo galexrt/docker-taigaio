@@ -7,18 +7,61 @@ HTTPS_ENABLED="${HTTPS_ENABLED:-False}"
 SETTING_EMAIL_BACKEND="${SETTING_EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}"
 SETTING_CELERY_RESULT_BACKEND=""
 DB_HOST="${DB_HOST:-database}"
+DB_PORT="${DB_PORT:-5432}"
 DB_NAME="${DB_NAME:-taigaio}"
 DB_USER="${DB_USER:-taigaio}"
 DB_PASS="${DB_PASS:-taigaio}"
 RABBITMQ_HOST="${RABBITMQ_HOST:-rabbitmq}"
-RABBITMQ_PORT="${RABBITMQ_PORT:-5672}"
+RABBITMQ_HOST_PORT="${RABBITMQ_HOST_PORT:-5672}"
 RABBITMQ_USER="${RABBITMQ_USER:-taiga}"
 RABBITMQ_PASS="${RABBITMQ_PASS:-taiga}"
 REDIS_HOST="${REDIS_HOST:-redis}"
-REDIS_PORT="${REDIS_PORT:-6379}"
+REDIS_HOST_PORT="${REDIS_HOST_PORT:-6379}"
 
+setConfigurationValue() {
+    if [ -z "$1" ]; then
+        echo "No KEY given for setConfigurationValue."
+        return 1
+    fi
+    if [ -z "$3" ]; then
+        echo "No FILE given for setConfigurationValue."
+        return 1
+    fi
+    local KEY="$1"
+    local VALUE
+    local FILE="$3"
+    local TYPE="$4"
+    if [ -z "$TYPE" ]; then
+        case "$2" in
+            [Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee])
+            TYPE="bool"
+            ;;
+            *)
+            TYPE="string"
+            ;;
+        esac
+    fi
+    case "$TYPE" in
+        emptyreturn)
+        if [ -z "$2" ]; then
+            return 0
+        fi
+        ;;
+        literal)
+        VALUE="$1"
+        ;;
+        bool|boolean|int|integer|array)
+        VALUE="$KEY = $2"
+        ;;
+        string|*)
+        VALUE="$KEY = '${2//\'/\'}'"
+        ;;
+    esac
+    echo "$VALUE" >> "$FILE"
+    echo "+ Setting key \"$KEY\", type \"$TYPE\" in file \"$FILE\"."
+}
 taigaConfiguration() {
-cat <<EOF >> /home/taiga/taiga-front-dist/dist/conf.json
+    cat <<EOF >> /home/taiga/taiga-front-dist/dist/conf.json
 {
     "api": "http://example.com/api/v1/",
     "eventsUrl": "ws://example.com/events",
@@ -31,24 +74,26 @@ cat <<EOF >> /home/taiga/taiga-front-dist/dist/conf.json
     "contribPlugins": []
 }
 EOF
-cat <<EOF >> "$LOCAL_PY"
-DATABASES = {
-        'default': {
-            'ENGINE': 'transaction_hooks.backends.postgresql_psycopg2',
-            'NAME': '$DB_NAME',
-            'USER': '$DB_USER',
-            'PASSWORD': '$DB_PASS',
-            'HOST': '$DB_HOST',
-            'PORT': '$DB_PORT',
-        }
+    local VALUE="{
+    'default': {
+        'ENGINE': 'transaction_hooks.backends.postgresql_psycopg2',
+        'NAME': '$DB_NAME',
+        'USER': '$DB_USER',
+        'PASSWORD': '$DB_PASS',
+        'HOST': '$DB_HOST',
+        'PORT': '$DB_PORT',
     }
-}
-EOF
-echo "CELERY_RESULT_BACKEND = 'redis://$REDIS_HOST:$REDIS_PORT/0'" >> "$LOCAL_PY"
-echo "BROKER_URL = 'amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT//'" >> "$LOCAL_PY"
-echo "EVENTS_PUSH_BACKEND_OPTIONS = {\"url\": \"amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT/taiga\"}" >> "$LOCAL_PY"
-unset SETTING_EVENTS_PUSH_BACKEND_OPTIONS SETTINGS_BROKER_URL SETTING_CELERY_RESULT_BACKEND
-cat <<EOF >> /home/taiga/taiga-events/config.json
+}"
+    setConfigurationValue "from .development import *" "" "$LOCAL_PY" "literal"
+    setConfigurationValue "from .celery import *" "" "$LOCAL_PY" "literal"
+    setConfigurationValue "DATABASES" "$VALUE" "$LOCAL_PY" "array"
+    setConfigurationValue "CELERY_ENABLED" "True" "$LOCAL_PY"
+    setConfigurationValue "CELERY_RESULT_BACKEND" "redis://$REDIS_HOST:$REDIS_HOST_PORT/0" "$LOCAL_PY"
+    setConfigurationValue "BROKER_URL" "amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_HOST_PORT//" "$LOCAL_PY"
+    setConfigurationValue "EVENTS_PUSH_BACKEND" "taiga.events.backends.rabbitmq.EventsPushBackend" "$LOCAL_PY"
+    setConfigurationValue "EVENTS_PUSH_BACKEND_OPTIONS" "{\"url\": \"amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT/taiga\"}" "$LOCAL_PY" "array"
+    unset SETTING_EVENTS_PUSH_BACKEND SETTING_EVENTS_PUSH_BACKEND_OPTIONS SETTINGS_BROKER_URL SETTING_CELERY_RESULT_BACKEND
+    cat <<EOF >> /home/taiga/taiga-events/config.json
 {
     \"url\": \"amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT/taiga\",
     \"secret\": \"mysecret\",
@@ -57,40 +102,35 @@ cat <<EOF >> /home/taiga/taiga-events/config.json
     }
 }
 EOF
-cat <<EOF >> "$LOCAL_PY"
-MEDIA_URL = "http://$EXTERNAL_HOST/media/"
-STATIC_URL = "http://$EXTERNAL_HOST/static/"
-ADMIN_MEDIA_PREFIX = "http://$EXTERNAL_HOST/static/admin/"
-SITES["front"]["domain"] = "$EXTERNAL_HOST"
-EOF
-if [ ! -z "$FRONT_SITEMAP_ENABLED" ]; then
-    echo "FRONT_SITEMAP_ENABLED = $FRONT_SITEMAP_ENABLED" >> "$LOCAL_PY"
-    echo "FRONT_SITEMAP_CACHE_TIMEOUT = 60*60" >> "$LOCAL_PY"
-fi
-echo "ADMINS = (" >> "$LOCAL_PY"
-echo "$ADMIN_USERS" | sed -n 1'p' | tr ';' '\n' | while read ADMIN_USER; do
-    echo "$ADMIN_USER," > "$LOCAL_PY"
-done
-echo ")" >> "$LOCAL_PY"
-SET_SETTINGS=($(env | sed -n -r "s/SETTING_([0-9A-Za-z_]*).*/\1/p"))
-for SETTING_KEY in "${SET_SETTINGS[@]}"; do
-    KEY="ZULIP_SETTINGS_$SETTING_KEY"
-    SETTING_VAR="${!KEY}"
-    if [ -z "$SETTING_VAR" ]; then
-        echo "Empty var for key \"$SETTING_KEY\"."
-        continue
+    setConfigurationValue "MEDIA_URL" "http://$EXTERNAL_HOST/media/" "$LOCAL_PY"
+    setConfigurationValue "STATIC_URL" "http://$EXTERNAL_HOST/static/" "$LOCAL_PY"
+    setConfigurationValue "ADMIN_MEDIA_PREFIX" "http://$EXTERNAL_HOST/static/admin/" "$LOCAL_PY"
+    if [ "$FRONT_SITEMAP_ENABLED" != "True" ] || [ "$FRONT_SITEMAP_ENABLED" == "true" ]; then
+        setConfigurationValue "FRONT_SITEMAP_ENABLED" "True" "$LOCAL_PY"
+        setConfigurationValue "FRONT_SITEMAP_CACHE_TIMEOUT" "60*60" "$LOCAL_PY" "array"
     fi
-    setConfigurationValue "$SETTING_KEY" "$SETTING_VAR" "$FILE"
-done
-unset SETTING_KEY SETTING_VAR KEY
+    local SUPERUSERS="ADMINS = ("
+    echo "$ADMIN_USERS" | sed -n 1'p' | tr ';' '\n' | while read ADMIN_USER; do
+        SUPERUSERS="$SUPERUSERS\n    $ADMIN_USER,"
+    done
+    setConfigurationValue "$SUPERUSERS)" "" "$LOCAL_PY" "literal"
+    SET_SETTINGS=($(env | sed -n -r "s/SETTING_([0-9A-Za-z_]*).*/\1/p"))
+    for SETTING_KEY in "${SET_SETTINGS[@]}"; do
+        KEY="SETTING_$SETTING_KEY"
+        SETTING_VAR="${!KEY}"
+        if [ -z "$SETTING_VAR" ]; then
+            echo "Empty var for key \"$SETTING_KEY\"."
+            continue
+        fi
+        setConfigurationValue "$SETTING_KEY" "$SETTING_VAR" "$LOCAL_PY"
+    done
+    unset SETTING_KEY SETTING_VAR KEY
 }
 configureHttps() {
-    echo "SITES[\"front\"][\"scheme\"] = \"https\"" >> "$LOCAL_PY"
     if [ "$HTTPS_ENABLED" != "False" ] && [ "$HTTPS_ENABLED" != "false" ]; then
         mv /includes/taiga-https /etc/nginx/sites-enabled/taiga
         sed -i 's|http://|https://|g' /home/taiga/taiga-front-dist/dist/conf.json
         sed -i 's|http://|https://|g' "$LOCAL_PY"
-        echo "SITES[\"front\"][\"scheme\"] = \"https\"" >> "$LOCAL_PY"
     fi
 }
 databaseSetup() {
@@ -114,19 +154,28 @@ databaseSetup() {
     CREATE SCHEMA $DB_SCHEMA AUTHORIZATION $DB_USER;
     """ | psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" || :
 }
+rabbitmqSetup() {
+    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" delete_user guest 2> /dev/null || :
+    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" add_user "$RABBITMQ_USERNAME" "$RABBITMQ_PASS" 2> /dev/null || :
+    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" set_user_tags "$RABBITMQ_USER" administrator 2> /dev/null || :
+    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" set_permissions -p / "$RABBITMQ_USER" '.*' '.*' '.*' 2> /dev/null || :
+    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" add_vhost /taiga 2> /dev/null || :
+    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" set_permissions -p /taiga "$RABBITMQ_USER" '.*' '.*' '.*' 2> /dev/null || :
+}
 runMigration() {
-    su taiga -c "python /home/taiga/taiga-back/manage.py migrate --noinput"
-    if [ ! -z "$RUN_INIT" ] && ([ "$RUN_INIT" == "True" ] || [ "$RUN_INIT" == "true" ]); then
-        su taiga -c "python /home/taiga/taiga-back/manage.py loaddata initial_user"
-        su taiga -c "python /home/taiga/taiga-back/manage.py loaddata initial_project_templates"
-        su taiga -c "python /home/taiga/taiga-back/manage.py loaddata initial_role"
+    su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py migrate --noinput"
+    if [ ! -z "$INSERT_DEFAULT_DATA" ] && ([ "$INSERT_DEFAULT_DATA" == "True" ] || [ "$INSERT_DEFAULT_DATA" == "true" ]); then
+        su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py loaddata initial_user"
+        su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py loaddata initial_project_templates"
+        su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py loaddata initial_role"
     fi
-    su taiga -c "python /home/taiga/taiga-back/manage.py compilemessages"
-    su taiga -c "python /home/taiga/taiga-back/manage.py collectstatic --noinput"
+    su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py compilemessages"
+    su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py collectstatic --noinput"
 }
 configureHttps
 taigaConfiguration
 databaseSetup
+rabbitmqSetup
 runMigration
 
-supervisord -n
+exec supervisord -n

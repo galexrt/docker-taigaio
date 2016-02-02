@@ -3,7 +3,7 @@ MAINTAINER Alexander Trost <galexrt@googlemail.com>
 
 ENV DATA_DIR="/data"
 
-ADD docker-entrypoint.sh /entrypoint.sh
+ADD docker-entrypoint.sh /docker-entrypoint.sh
 ADD includes/ /includes/
 
 RUN useradd -m -d /home/taiga -s /bin/bash taiga && \
@@ -44,4 +44,4 @@ RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
 
 EXPOSE 80/tcp 443/tcp
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
