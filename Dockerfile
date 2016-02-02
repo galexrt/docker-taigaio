@@ -40,7 +40,7 @@ RUN cd /opt/taiga && \
     npm install
 
 USER root
-RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /opt/taiga/*/.git && \
     chown -R taiga:taiga /opt/taiga
 
 ADD docker-entrypoint.sh /docker-entrypoint.sh
