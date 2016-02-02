@@ -31,15 +31,16 @@ RUN mkdir -p /home/taiga/conf/ /home/taiga/logs && \
     git clone https://github.com/taigaio/taiga-back.git /home/taiga/taiga-back && \
     cd /home/taiga/taiga-back && \
     git checkout stable  && \
-    pip install -r requirements.txt && \
-    cd /home/taiga && \
-    git clone https://github.com/taigaio/taiga-front-dist.git taiga-front-dist && \
+    git clone https://github.com/taigaio/taiga-front-dist.git /home/taiga/taiga-front-dist && \
     cd /home/taiga/taiga-front-dist && \
     git checkout stable && \
-    cd /home/taiga && \
-    git clone https://github.com/taigaio/taiga-events.git taiga-events && \
+    git clone https://github.com/taigaio/taiga-events.git /home/taiga/taiga-events && \
     cd /home/taiga/taiga-events && \
     npm install && \
+    cd /home/taiga/taiga-back && \
+    source /usr/share/virtualenvwrapper/virtualenvwrapper.sh && \
+    mkvirtualenv -p /usr/bin/python3.4 taiga && \
+    pip install -r requirements.txt && \
     chown -R taiga:taiga /home/taiga
 
 USER root
