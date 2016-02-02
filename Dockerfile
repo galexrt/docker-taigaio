@@ -38,7 +38,7 @@ RUN mkdir -p /home/taiga/conf/ /home/taiga/logs && \
     cd /home/taiga/taiga-events && \
     npm install && \
     cd /home/taiga/taiga-back && \
-    source /usr/share/virtualenvwrapper/virtualenvwrapper.sh && \
+    . /usr/share/virtualenvwrapper/virtualenvwrapper.sh && \
     mkvirtualenv -p /usr/bin/python3.4 taiga && \
     pip install -r requirements.txt && \
     chown -R taiga:taiga /home/taiga
