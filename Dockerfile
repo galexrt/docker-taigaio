@@ -21,7 +21,7 @@ RUN useradd -m -d /opt/taiga -s /bin/bash taiga && \
     apt-get -qq clean
 
 USER taiga
-RUN cd /home/taiga && \
+RUN cd /opt/taiga && \
     gem install --user-install sass scss-lint && \
     export PATH=~/.gem/ruby/*/bin:$PATH && \
     mkdir -p /opt/taiga/conf/ /opt/taiga/logs && \
