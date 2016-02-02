@@ -10,8 +10,8 @@ RUN useradd -m -d /opt/taiga -s /bin/bash taiga && \
     apt-get install -y build-essential binutils-doc autoconf flex bison libjpeg-dev \
         libfreetype6-dev zlib1g-dev libzmq3-dev libgdbm-dev libncurses5-dev automake \
         libtool libffi-dev curl git tmux gettext python3 python3-pip python-dev python3-dev \
-        python-pip virtualenvwrapper libxml2-dev libxslt-dev nginx nodejs ruby \
-        supervisor postgresql postgresql-contrib postgresql-server-dev-all && \
+        python-pip virtualenvwrapper libxml2-dev libxslt-dev nginx nodejs ruby supervisor \
+        postgresql postgresql-contrib postgresql-server-dev-all rabbitmq-server && \
     npm install -g coffee-script gulp bower && \
     pip2 install circus && \
     mv -f /includes/supervisor/* /etc/supervisor/conf.d && \
@@ -45,6 +45,6 @@ RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
 
 ADD docker-entrypoint.sh /docker-entrypoint.sh
 
-EXPOSE 80/tcp 443/tcp 8000/tcp
+EXPOSE 80/tcp 443/tcp 8888/tcp
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

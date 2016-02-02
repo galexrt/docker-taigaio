@@ -62,24 +62,43 @@ setConfigurationValue() {
     echo "+ Setting key \"$KEY\", type \"$TYPE\" in file \"$FILE\"."
 }
 taigaConfiguration() {
-    if [ "$HTTPS_ENABLED" == "True" ] || [ "$HTTPS_ENABLED" != "true" ]; then
+    if [ "$HTTPS_ENABLED" == "True" ] || [ "$HTTPS_ENABLED" == "true" ]; then
         local SCHEMA="https"
     else
         local SCHEMA="http"
     fi
-    cat <<EOF >> /opt/taiga/taiga-front/dist/conf.json
+    echo "" > "$LOCAL_PY"
+    # TODO Add support for themes and that stuff
+    mkdir -p /opt/taiga/taiga-front/dist
+cat <<EOF > /opt/taiga/taiga-front/dist/conf.json
 {
-    "api": "$SCHEMA://$EXTERNAL_HOST/api/v1/",
-    "eventsUrl": "wss://$EXTERNAL_HOST/events",
-    "debug": true,
+    "api": "$SCHEMA://$EXTERNAL_HOST:8888/api/v1/",
+    "eventsUrl": "ws://$EXTERNAL_HOST:8888/events",
+    "eventsMaxMissedHeartbeats": 5,
+    "eventsHeartbeatIntervalTime": 60000,
+    "debug": $(echo $SETTING_DEBUG | tr '[:upper:]' '[:lower:]'),
+    "debugInfo": false,
+    "defaultLanguage": "en",
+    "themes": ["taiga"],
+    "defaultTheme": "taiga",
     "publicRegisterEnabled": true,
     "feedbackEnabled": true,
     "privacyPolicyUrl": null,
     "termsOfServiceUrl": null,
     "maxUploadFileSize": null,
-    "gitHubClientId": null
+    "contribPlugins": []
 }
 EOF
+cat <<EOF > /opt/taiga/taiga-events/config.json
+{
+"url": "amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_HOST_PORT/$RABBITMQ_VHOST",
+"secret": "mysecret",
+"webSocketServer": {
+    "port": 8888
+}
+}
+EOF
+    chown taiga: -R "$LOCAL_PY" /opt/taiga/taiga-events/config.json /opt/taiga/taiga-front/dist
     local VALUE="{
     'default': {
         'ENGINE': 'transaction_hooks.backends.postgresql_psycopg2',
@@ -97,17 +116,8 @@ EOF
     setConfigurationValue "CELERY_RESULT_BACKEND" "redis://$REDIS_HOST:$REDIS_HOST_PORT/0" "$LOCAL_PY"
     setConfigurationValue "BROKER_URL" "amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_HOST_PORT//" "$LOCAL_PY"
     setConfigurationValue "EVENTS_PUSH_BACKEND" "taiga.events.backends.rabbitmq.EventsPushBackend" "$LOCAL_PY"
-    setConfigurationValue "EVENTS_PUSH_BACKEND_OPTIONS" "{\"url\": \"amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST\"}" "$LOCAL_PY" "array"
+    setConfigurationValue "EVENTS_PUSH_BACKEND_OPTIONS" "{\"url\": \"amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_HOST_PORT/$RABBITMQ_VHOST\"}" "$LOCAL_PY" "array"
     unset SETTING_EVENTS_PUSH_BACKEND SETTING_EVENTS_PUSH_BACKEND_OPTIONS SETTINGS_BROKER_URL SETTING_CELERY_RESULT_BACKEND
-    cat <<EOF >> /opt/taiga/taiga-events/config.json
-{
-    "url": "amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST",
-    "secret": "mysecret",
-    "webSocketServer": {
-        "port": 8888
-    }
-}
-EOF
     setConfigurationValue "MEDIA_URL" "http://$EXTERNAL_HOST/media/" "$LOCAL_PY"
     setConfigurationValue "STATIC_URL" "http://$EXTERNAL_HOST/static/" "$LOCAL_PY"
     setConfigurationValue "ADMIN_MEDIA_PREFIX" "http://$EXTERNAL_HOST/static/admin/" "$LOCAL_PY"
@@ -133,7 +143,7 @@ EOF
     unset SETTING_KEY SETTING_VAR KEY
 }
 configureHttps() {
-    if [ "$HTTPS_ENABLED" == "True" ] || [ "$HTTPS_ENABLED" != "true" ]; then
+    if [ "$HTTPS_ENABLED" == "True" ] || [ "$HTTPS_ENABLED" == "true" ]; then
         mv /includes/taiga-https /etc/nginx/sites-enabled/taiga
         sed -i 's|http://|https://|g' /opt/taiga/taiga-front/dist/conf.json
         sed -i 's|http://|https://|g' "$LOCAL_PY"
@@ -164,9 +174,9 @@ rabbitmqSetup() {
     rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" delete_user guest 2> /dev/null || :
     rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" add_user "$RABBITMQ_USERNAME" "$RABBITMQ_PASS" 2> /dev/null || :
     rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" set_user_tags "$RABBITMQ_USER" administrator 2> /dev/null || :
-    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" set_permissions -p / "$RABBITMQ_USER" '.*' '.*' '.*' 2> /dev/null || :
-    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" add_vhost /taiga 2> /dev/null || :
-    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" set_permissions -p /taiga "$RABBITMQ_USER" '.*' '.*' '.*' 2> /dev/null || :
+    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" set_permissions -p / "$RABBITMQ_USER" '.*' '.*' '.*' || :
+    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" add_vhost /taiga || :
+    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" set_permissions -p /taiga "$RABBITMQ_USER" '.*' '.*' '.*' || :
 }
 runMigration() {
     su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py migrate --noinput"
@@ -178,11 +188,15 @@ runMigration() {
     fi
     su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py collectstatic --noinput"
 }
+generateFrontFiles() {
+    su taiga -c "cd /opt/taiga/taiga-front;gulp deploy"
+}
 
 configureHttps
 taigaConfiguration
 databaseSetup
 rabbitmqSetup
 runMigration
+generateFrontFiles
 
 exec supervisord -n
