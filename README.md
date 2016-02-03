@@ -1,5 +1,5 @@
 # docker-taiga
-[Taiga.Io](https://taiga.io/) in Docker
+[Taiga.Io](https://taiga.io/) in a Docker Image.
 
 ## Download the image
 The image is available at [Quay.Io](https://quay.io/) and [Docker Hub](https://hub.docker.com/).
