@@ -28,14 +28,14 @@ taiga:
     - rabbitmq
     - redis
   environment:
-    DB_HOST: "database"
+    DB_HOST: "database_1"
     DB_NAME: "taiga"
     DB_USER: "taiga"
     DB_PASS: "taiga"
-    RABBITMQ_HOST: "rabbitmq"
+    RABBITMQ_HOST: "rabbitmq_1"
     RABBITMQ_USER: "taiga"
     RABBITMQ_PASS: "taiga"
-    REDIS_HOST: "redis"
+    REDIS_HOST: "redis_1"
     ADMIN_USERS: "(\"Admin 1\",\"admin1@example.com\");(\"Admin 2\",\"admin2@example.com\")"
     SETTING_SECRET_KEY: "YOUR_OWN_SECRET_KEY"
     SETTING_PUBLIC_REGISTER_ENABLED: "True"
