@@ -5,6 +5,7 @@ ADD includes/ /includes/
 
 RUN useradd -m -d /opt/taiga -s /bin/bash taiga && \
     apt-get -q update && \
+    apt-get -q dist-upgrade -y && \
     apt-get install -y curl && \
     curl -sL https://deb.nodesource.com/setup_5.x | bash - && \
     apt-get install -y build-essential binutils-doc autoconf flex bison libjpeg-dev \
@@ -19,6 +20,8 @@ RUN useradd -m -d /opt/taiga -s /bin/bash taiga && \
     mv /includes/taiga-http /etc/nginx/sites-enabled/taiga && \
     apt-get -qq autoremove --purge -y && \
     apt-get -qq clean
+
+ADD includes/nginx.conf /etc/nginx/nginx.conf
 
 USER taiga
 RUN cd /opt/taiga && \
