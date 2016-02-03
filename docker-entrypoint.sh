@@ -1,6 +1,7 @@
 #!/bin/bash
 
 EXTERNAL_HOST="${EXTERNAL_HOST:-localhost}"
+EXTERNAL_PORT="${EXTERNAL_PORT:-80}"
 HTTPS_ENABLED="${HTTPS_ENABLED:-False}"
 SETTING_EMAIL_BACKEND="${SETTING_EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}"
 SETTING_CELERY_RESULT_BACKEND=""
@@ -72,7 +73,7 @@ taigaConfiguration() {
     mkdir -p /opt/taiga/taiga-front/dist
 cat <<EOF > /opt/taiga/taiga-front/dist/conf.json
 {
-    "api": "$SCHEMA://$EXTERNAL_HOST:8888/api/v1/",
+    "api": "$SCHEMA://$EXTERNAL_HOST:$EXTERNAL_PORT/api/v1/",
     "eventsUrl": "ws://$EXTERNAL_HOST:8888/events",
     "eventsMaxMissedHeartbeats": 5,
     "eventsHeartbeatIntervalTime": 60000,
