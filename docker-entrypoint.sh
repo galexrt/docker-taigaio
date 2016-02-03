@@ -2,6 +2,7 @@
 
 EXTERNAL_HOST="${EXTERNAL_HOST:-localhost}"
 EXTERNAL_PORT="${EXTERNAL_PORT:-80}"
+EXTERNAL_EVENTS_PORT="${EXTERNAL_EVENTS_PORT:-8888}"
 HTTPS_ENABLED="${HTTPS_ENABLED:-False}"
 SETTING_EMAIL_BACKEND="${SETTING_EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}"
 SETTING_CELERY_RESULT_BACKEND=""
@@ -74,7 +75,7 @@ taigaConfiguration() {
 cat <<EOF > /opt/taiga/taiga-front/dist/conf.json
 {
     "api": "$SCHEMA://$EXTERNAL_HOST:$EXTERNAL_PORT/api/v1/",
-    "eventsUrl": "ws://$EXTERNAL_HOST:8888/events",
+    "eventsUrl": "ws://$EXTERNAL_HOST:$EXTERNAL_EVENTS_PORT/events",
     "eventsMaxMissedHeartbeats": 5,
     "eventsHeartbeatIntervalTime": 60000,
     "debug": $(echo $SETTING_DEBUG | tr '[:upper:]' '[:lower:]'),
@@ -95,7 +96,7 @@ cat <<EOF > /opt/taiga/taiga-events/config.json
 "url": "amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_HOST_PORT/$RABBITMQ_VHOST",
 "secret": "mysecret",
 "webSocketServer": {
-    "port": 8888
+    "port": $EXTERNAL_EVENTS_PORT
 }
 }
 EOF
