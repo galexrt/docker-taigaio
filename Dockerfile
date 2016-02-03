@@ -15,6 +15,7 @@ RUN useradd -m -d /opt/taiga -s /bin/bash taiga && \
         postgresql postgresql-contrib postgresql-server-dev-all rabbitmq-server && \
     npm install -g coffee-script gulp bower && \
     pip2 install circus && \
+    mkdir -p /opt/taiga/conf/ /opt/taiga/logs && \
     mv -f /includes/circus.ini /opt/taiga/conf/circus.ini && \
     mv -f /includes/supervisor/* /etc/supervisor/conf.d/ && \
     mv -f /includes/nginx.conf /etc/nginx/nginx.conf && \
@@ -27,7 +28,6 @@ USER taiga
 RUN cd /opt/taiga && \
     gem install --user-install sass scss-lint && \
     export PATH=~/.gem/ruby/*/bin:$PATH && \
-    mkdir -p /opt/taiga/conf/ /opt/taiga/logs && \
     git clone https://github.com/taigaio/taiga-back.git /opt/taiga/taiga-back && \
     cd /opt/taiga/taiga-back && \
     git checkout stable  && \
