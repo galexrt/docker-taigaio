@@ -13,7 +13,7 @@ DB_USER="${DB_USER:-taigaio}"
 DB_PASS="${DB_PASS:-taigaio}"
 RABBITMQ_HOST="${RABBITMQ_HOST:-rabbitmq}"
 RABBITMQ_HOST_PORT="${RABBITMQ_HOST_PORT:-5672}"
-RABBITMQ_VHOST="${RABBITMQ_VHOST:-taigaio}"
+RABBITMQ_VHOST="${RABBITMQ_VHOST:-taiga}"
 RABBITMQ_USER="${RABBITMQ_USER:-taigaio}"
 RABBITMQ_PASS="${RABBITMQ_PASS:-taigaio}"
 REDIS_HOST="${REDIS_HOST:-redis}"
@@ -177,8 +177,8 @@ rabbitmqSetup() {
     rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" add_user "$RABBITMQ_USERNAME" "$RABBITMQ_PASS" 2> /dev/null || :
     rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" set_user_tags "$RABBITMQ_USER" administrator 2> /dev/null || :
     rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" set_permissions -p / "$RABBITMQ_USER" '.*' '.*' '.*' || :
-    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" add_vhost /taiga || :
-    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" set_permissions -p /taiga "$RABBITMQ_USER" '.*' '.*' '.*' || :
+    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" add_vhost taiga || :
+    rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" set_permissions -p taiga "$RABBITMQ_USER" '.*' '.*' '.*' || :
 }
 runMigration() {
     su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py migrate --noinput"
