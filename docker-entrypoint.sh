@@ -64,6 +64,7 @@ setConfigurationValue() {
     echo "+ Setting key \"$KEY\", type \"$TYPE\" in file \"$FILE\"."
 }
 taigaConfiguration() {
+    echo "+ taigaConfiguration"
     if [ "$HTTPS_ENABLED" == "True" ] || [ "$HTTPS_ENABLED" == "true" ]; then
         local SCHEMA="https"
     else
