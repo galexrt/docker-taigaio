@@ -1,5 +1,5 @@
 # docker-taiga
-[![](https://images.microbadger.com/badges/image/galexrt/taiga.svg)](https://microbadger.com/images/galexrt/taiga "Get your own image badge on microbadger.com")
+[![](https://images.microbadger.com/badges/image/galexrt/taigaio.svg)](https://microbadger.com/images/galexrt/taigaio "Get your own image badge on microbadger.com")
 
 [Taiga.Io](https://taiga.io/) in a Docker Image.
 
