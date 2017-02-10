@@ -29,6 +29,8 @@ SETTING_GITHUB_API_CLIENT_ID
 ```
 * And so on
 
+For available setting variables, please refer to the Taiga.Io docs.
+
 ### Running the image
 Use `docker-compose` command to start the container.
 Check the `docker-compose.yml` for an example configuration.
