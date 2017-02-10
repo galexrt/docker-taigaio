@@ -20,6 +20,15 @@ Or from Docker Hub:
 docker pull galexrt/taigaio:latest
 ```
 
+### Configuring
+To set a Taiga.Io setting variable, prefix it with `SETTING_`.
+Examples:
+* For the variable GITHUB_API_CLIENT_ID
+```
+SETTING_GITHUB_API_CLIENT_ID
+```
+* And so on
+
 ### Running the image
 Use `docker-compose` command to start the container.
 Check the `docker-compose.yml` for an example configuration.
