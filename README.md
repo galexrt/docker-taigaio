@@ -1,7 +1,7 @@
 # docker-taiga
 [![](https://images.microbadger.com/badges/image/galexrt/taigaio.svg)](https://microbadger.com/images/galexrt/taigaio "Get your own image badge on microbadger.com")
 
-[![Docker Repository on Quay.io](https://quay.io/repository/galexrt/taigaio/status "Docker Repository on Quay.io")](https://quay.io/repository/galexrt/zulip)
+[![Docker Repository on Quay.io](https://quay.io/repository/galexrt/taigaio/status "Docker Repository on Quay.io")](https://quay.io/repository/galexrt/taigaio)
 
 Image available from:
 * [**Quay.io**](https://quay.io/repository/galexrt/taigaio)
