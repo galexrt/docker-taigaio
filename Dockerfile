@@ -22,7 +22,9 @@ RUN useradd -m -d /opt/taiga -s /bin/bash taiga && \
     mv -f /includes/taiga-http /etc/nginx/sites-enabled/taiga && \
     rm -f /etc/nginx/sites-enabled/default && \
     apt-get -qq autoremove --purge -y && \
-    apt-get -qq clean
+    apt-get -qq clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /opt/taiga/*/.git && \
+    chown -R taiga:taiga /opt/taiga
 
 USER taiga
 RUN cd /opt/taiga && \
@@ -42,11 +44,9 @@ RUN cd /opt/taiga && \
     npm install
 
 USER root
-RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /opt/taiga/*/.git && \
-    chown -R taiga:taiga /opt/taiga
 
-ADD docker-entrypoint.sh /docker-entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
 
 EXPOSE 80/tcp 443/tcp 8888/tcp
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
