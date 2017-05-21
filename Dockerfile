@@ -34,11 +34,9 @@ RUN cd /opt/taiga && \
     cd /opt/taiga/taiga-back && \
     git checkout stable  && \
     bash -c "source /usr/share/virtualenvwrapper/virtualenvwrapper.sh && mkvirtualenv -p /usr/bin/python3.4 taiga && pip install --upgrade pip setuptools && pip install -r requirements.txt" && \
-    git clone https://github.com/taigaio/taiga-front.git /opt/taiga/taiga-front && \
-    cd /opt/taiga/taiga-front && \
+    git clone https://github.com/taigaio/taiga-front.git /opt/taiga/taiga-front-dist && \
+    cd /opt/taiga/taiga-front-dist && \
     git checkout stable && \
-    npm install && \
-    bower install && \
     git clone https://github.com/taigaio/taiga-events.git /opt/taiga/taiga-events && \
     cd /opt/taiga/taiga-events && \
     npm install
