@@ -11,7 +11,7 @@ RUN useradd -m -d /opt/taiga -s /bin/bash taiga && \
     apt-get install -y build-essential binutils-doc autoconf flex bison libjpeg-dev \
         libfreetype6-dev zlib1g-dev libzmq3-dev libgdbm-dev libncurses5-dev automake \
         libtool libffi-dev curl git tmux gettext python3 python3-pip python-dev python3-dev \
-        python-pip virtualenvwrapper libxml2-dev libxslt-dev nginx nodejs ruby supervisor \
+        python-pip virtualenvwrapper libxml2-dev libxslt-dev nginx nodejs ruby ruby-dev supervisor \
         postgresql postgresql-contrib postgresql-server-dev-all rabbitmq-server && \
     npm install -g coffee-script gulp bower && \
     pip2 install circus && \
