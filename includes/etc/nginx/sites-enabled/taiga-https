@@ -12,11 +12,12 @@ server {
     client_max_body_size 50M;
     charset utf-8;
 
-    index index.html;
+    access_log /home/taiga/logs/nginx.access.log;
+    error_log /home/taiga/logs/nginx.error.log;
 
     # Frontend
     location / {
-        root /opt/taiga/taiga-front/dist/;
+        root /home/taiga/taiga-front-dist/dist/;
         try_files $uri $uri/ /index.html;
     }
 
@@ -31,6 +32,7 @@ server {
         proxy_redirect off;
     }
 
+    # Django admin access (/admin/)
     location /admin {
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -41,25 +43,26 @@ server {
         proxy_redirect off;
     }
 
-    location /events {
-       proxy_pass http://127.0.0.1:8888/events;
-       proxy_http_version 1.1;
-       proxy_set_header Upgrade $http_upgrade;
-       proxy_set_header Connection "upgrade";
-       proxy_connect_timeout 7d;
-       proxy_send_timeout 7d;
-       proxy_read_timeout 7d;
-    }
-
     # Static files
     location /static {
-        alias /opt/taiga/taiga-back/static;
+        alias /home/taiga/taiga-back/static;
     }
 
     # Media files
     location /media {
-        alias /opt/taiga/taiga-back/media;
+        alias /home/taiga/taiga-back/media;
     }
+
+	# Taiga-events
+	location /events {
+	   proxy_pass http://127.0.0.1:8888/events;
+	   proxy_http_version 1.1;
+	   proxy_set_header Upgrade $http_upgrade;
+	   proxy_set_header Connection "upgrade";
+	   proxy_connect_timeout 7d;
+	   proxy_send_timeout 7d;
+	   proxy_read_timeout 7d;
+	}
 
     add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
     add_header Public-Key-Pins 'pin-sha256="klO23nT2ehFDXCfx3eHTDRESMz3asj1muO+4aIdjiuY="; pin-sha256="633lt352PKRXbOwf4xSEa1M517scpD3l5f79xMD9r9Q="; max-age=2592000; includeSubDomains';

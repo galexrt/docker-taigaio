@@ -19,7 +19,7 @@ RABBITMQ_PASS="${RABBITMQ_PASS:-taigaio}"
 REDIS_HOST="${REDIS_HOST:-redis}"
 REDIS_HOST_PORT="${REDIS_HOST_PORT:-6379}"
 
-LOCAL_PY="/opt/taiga/taiga-back/settings/local.py"
+LOCAL_PY="/home/taiga/taiga-back/settings/local.py"
 
 setConfigurationValue() {
     if [ -z "$1" ]; then
@@ -72,8 +72,8 @@ taigaConfiguration() {
     fi
     echo "" > "$LOCAL_PY"
     # TODO Add support for themes and that stuff
-    mkdir -p /opt/taiga/taiga-front/dist
-cat <<EOF > /opt/taiga/taiga-front/dist/conf.json
+    mkdir -p /home/taiga/taiga-front/dist
+cat <<EOF > /home/taiga/taiga-front/dist/conf.json
 {
     "api": "$SCHEMA://$EXTERNAL_HOST:$EXTERNAL_PORT/api/v1/",
     "eventsUrl": "ws://$EXTERNAL_HOST:$EXTERNAL_EVENTS_PORT/events",
@@ -92,7 +92,7 @@ cat <<EOF > /opt/taiga/taiga-front/dist/conf.json
     "contribPlugins": []
 }
 EOF
-cat <<EOF > /opt/taiga/taiga-events/config.json
+cat <<EOF > /home/taiga/taiga-events/config.json
 {
 "url": "amqp://$RABBITMQ_USER:$RABBITMQ_PASS@$RABBITMQ_HOST:$RABBITMQ_HOST_PORT/$RABBITMQ_VHOST",
 "secret": "mysecret",
@@ -101,7 +101,7 @@ cat <<EOF > /opt/taiga/taiga-events/config.json
 }
 }
 EOF
-    chown taiga: -R "$LOCAL_PY" /opt/taiga/taiga-events/config.json /opt/taiga/taiga-front/dist
+    chown taiga: -R "$LOCAL_PY" /home/taiga/taiga-events/config.json /home/taiga/taiga-front/dist
     local VALUE="{
     'default': {
         'ENGINE': 'transaction_hooks.backends.postgresql_psycopg2',
@@ -148,7 +148,7 @@ EOF
 configureHttps() {
     if [ "$HTTPS_ENABLED" == "True" ] || [ "$HTTPS_ENABLED" == "true" ]; then
         mv /includes/taiga-https /etc/nginx/sites-enabled/taiga
-        sed -i 's|http://|https://|g' /opt/taiga/taiga-front/dist/conf.json
+        sed -i 's|http://|https://|g' /home/taiga/taiga-front/dist/conf.json
         sed -i 's|http://|https://|g' "$LOCAL_PY"
     fi
 }
@@ -182,17 +182,17 @@ rabbitmqSetup() {
     rabbitmqctl -n "$RABBITMQ_USER@$RABBITMQ_HOST" set_permissions -p taiga "$RABBITMQ_USER" '.*' '.*' '.*' || :
 }
 runMigration() {
-    su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py migrate --noinput"
+    su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py migrate --noinput"
     if [ ! -z "$INSERT_DEFAULT_DATA" ] && ([ "$INSERT_DEFAULT_DATA" == "True" ] || [ "$INSERT_DEFAULT_DATA" == "true" ]); then
-        su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py loaddata initial_user"
-        su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py loaddata initial_project_templates"
-        su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py loaddata initial_role"
-        su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py compilemessages"
+        su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py loaddata initial_user"
+        su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py loaddata initial_project_templates"
+        su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py loaddata initial_role"
+        su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py compilemessages"
     fi
-    su taiga -c "source /opt/taiga/.virtualenvs/taiga/bin/activate;cd /opt/taiga/taiga-back;python /opt/taiga/taiga-back/manage.py collectstatic --noinput"
+    su taiga -c "source /home/taiga/.virtualenvs/taiga/bin/activate;cd /home/taiga/taiga-back;python /home/taiga/taiga-back/manage.py collectstatic --noinput"
 }
 generateFrontFiles() {
-    su taiga -c "cd /opt/taiga/taiga-front;gulp deploy"
+    su taiga -c "cd /home/taiga/taiga-front;gulp deploy"
 }
 
 configureHttps
