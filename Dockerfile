@@ -36,7 +36,7 @@ USER taiga
 RUN git clone https://github.com/taigaio/taiga-back.git /home/taiga/taiga-back && \
     cd /home/taiga/taiga-back && \
     git checkout stable  && \
-    bash -c "source /usr/share/virtualenvwrapper/virtualenvwrapper.sh && mkvirtualenv -p /usr/bin/python3.4 taiga && pip install --upgrade pip setuptools && pip install -r requirements.txt" && \
+    bash -c "source /usr/share/virtualenvwrapper/virtualenvwrapper.sh && mkvirtualenv -p /usr/bin/python3.5 taiga && pip install --upgrade pip setuptools && pip install -r requirements.txt" && \
     git clone https://github.com/taigaio/taiga-front.git /home/taiga/taiga-front-dist && \
     cd /home/taiga/taiga-front-dist && \
     git checkout stable && \
