@@ -7,7 +7,8 @@ RUN useradd -m -d /home/taiga -s /bin/bash taiga && \
     apt-get -q update && \
     apt-get -q dist-upgrade -y && \
     apt-get install -y curl && \
-    curl -sL https://deb.nodesource.com/setup_5.x | bash - && \
+    curl -sL https://deb.nodesource.com/setup_6.x | bash - && \
+    apt-get install -y nodejs && \
     apt-get install -y build-essential binutils-doc autoconf flex bison libjpeg-dev && \
     apt-get install -y libfreetype6-dev zlib1g-dev libzmq3-dev libgdbm-dev libncurses5-dev && \
     apt-get install -y automake libtool libffi-dev curl git tmux gettext && \
