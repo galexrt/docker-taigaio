@@ -6,6 +6,7 @@ EXTERNAL_EVENTS_PORT="${EXTERNAL_EVENTS_PORT:-8888}"
 HTTPS_ENABLED="${HTTPS_ENABLED:-False}"
 SETTING_EMAIL_BACKEND="${SETTING_EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}"
 SETTING_CELERY_RESULT_BACKEND=""
+DB_TYPE="${DB_TYPE:-django.db.backends.postgresql}"
 DB_HOST="${DB_HOST:-database}"
 DB_PORT="${DB_PORT:-5432}"
 DB_NAME="${DB_NAME:-taigaio}"
@@ -104,7 +105,7 @@ EOF
     chown taiga: -R "$LOCAL_PY" /home/taiga/taiga-events/config.json /home/taiga/taiga-front/dist
     local VALUE="{
     'default': {
-        'ENGINE': 'transaction_hooks.backends.postgresql_psycopg2',
+        'ENGINE': '$DB_TYPE',
         'NAME': '$DB_NAME',
         'USER': '$DB_USER',
         'PASSWORD': '$DB_PASS',
